@@ -1,0 +1,40 @@
+ABC INDUSTRIES LIMITED
+RESTATED FINANCIAL STATEMENTS FOR FISCAL 2022, 2023, AND 2024
+Prepared in accordance with the Companies Act, 2013 and SEBI (ICDR) Regulations
+All monetary amounts in Indian Rupees (₹ in Crores / Lakhs as indicated)
+
+STATEMENT I: RESTATED SUMMARY STATEMENT OF PROFIT AND LOSS
+(All figures in ₹ Crores)
+Particulars | Fiscal 2022 | Fiscal 2023 | Fiscal 2024
+Revenue from Operations | 640.20 | 880.50 | 1,250.50
+Other Income | 12.30 | 15.40 | 18.20
+Total Income | 652.50 | 895.90 | 1,268.70
+Cost of Materials Consumed | 392.10 | 542.80 | 780.40
+Employee Benefit Expenses | 74.50 | 98.20 | 142.10
+Other Operating Expenses | 85.20 | 110.90 | 147.80
+Total Operating Expenses | 551.80 | 751.90 | 1,070.30
+EBITDA | 88.40 | 128.60 | 180.20
+EBITDA Margin (%) | 13.81% | 14.61% | 14.41%
+Finance Costs (Interest) | 22.40 | 28.50 | 44.80
+Depreciation and Amortization | 12.10 | 16.40 | 24.10
+Profit Before Tax (PBT) | 53.90 | 83.70 | 111.30
+Tax Expense | 11.80 | 15.30 | 16.20
+Profit After Tax (PAT) | 42.10 | 68.40 | 95.10
+PAT Margin (%) | 6.58% | 7.77% | 7.60%
+
+STATEMENT II: RESTATED STATEMENT OF CASH FLOWS
+(All figures in ₹ Crores)
+Particulars | Fiscal 2022 | Fiscal 2023 | Fiscal 2024
+Operating Cash Flow Before Working Capital Changes | +86.20 | +125.10 | +176.40
+Increase in Trade Receivables | -18.40 | -32.50 | -169.00
+Increase in Inventories | -12.10 | -18.40 | -38.20
+Changes in Other Working Capital Items | -1.50 | -2.10 | +5.40
+Income Taxes Paid | -11.80 | -15.30 | -16.20
+Net Cash Flow from Operating Activities (CFO) | +54.20 | +72.10 | -25.40
+Net Cash Used in Investing Activities (Capex) | -38.50 | -54.20 | -82.10
+Net Cash Generated from Financing Activities | -12.40 | -14.80 | +112.50
+Net Increase / (Decrease) in Cash and Cash Equivalents | +3.30 | +3.10 | +5.00
+
+SUMMARY RATIOS AND BALANCE SHEET OBSERVATIONS:
+1. Cash Flow Divergence: In Fiscal 2024, despite an accounting PAT of ₹ 95.10 Crores, net cash generated from operating activities deteriorated to negative ₹ 25.40 Crores (CFO/PAT ratio: -0.26).
+2. Balance Sheet Leverage: Total Outstanding Borrowings increased to ₹ 380.50 Crores against a Net Worth of ₹ 262.40 Crores, translating into a Debt-to-Equity ratio of 1.45x.
