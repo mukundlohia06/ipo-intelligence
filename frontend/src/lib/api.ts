@@ -376,6 +376,14 @@ export async function fetchDocumentDetail(sourceId: string): Promise<any> {
   return await res.json();
 }
 
+export async function deleteDocument(sourceId: string): Promise<any> {
+  const res = await fetch(`${API_BASE_URL}/api/v1/documents/${sourceId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error(`Delete failed: HTTP ${res.status}`);
+  return await res.json();
+}
+
 export async function executeResearchQuery(
   ipoId: string,
   question: string,

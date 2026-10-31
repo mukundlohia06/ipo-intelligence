@@ -14,12 +14,13 @@ import {
   ArrowRight,
   ShieldCheck,
   AlertCircle,
-  FileCheck
+  FileCheck,
+  Trash2
 } from "lucide-react";
 import { Navbar } from "../../components/navigation/Navbar";
 import { DocumentUploadModal } from "../../components/terminal/DocumentUploadModal";
 import { PassageViewerModal } from "../../components/terminal/PassageViewerModal";
-import { fetchDocuments, fetchIpos, searchDocumentChunks, DocumentItem, IpoSummary } from "../../lib/api";
+import { fetchDocuments, fetchIpos, searchDocumentChunks, deleteDocument, DocumentItem, IpoSummary } from "../../lib/api";
 
 export default function DocumentsPage() {
   const [selectedIpo, setSelectedIpo] = useState<string>("ipo_hyundai_motor_india");
@@ -302,13 +303,28 @@ export default function DocumentsPage() {
                       Browse Chunks
                     </button>
 
-                    <Link
-                      href={`/assistant?ipo=${selectedIpo}&doc=${doc.id}`}
-                      className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-500/30"
-                    >
-                      <Sparkles className="w-3 h-3" />
-                      Ask AI About Document
-                    </Link>
+                    <div className="flex items-center gap-1.5">
+                      <Link
+                        href={`/assistant?ipo=${selectedIpo}&doc=${doc.id}`}
+                        className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-500/30"
+                      >
+                        <Sparkles className="w-3 h-3" />
+                        Ask AI
+                      </Link>
+
+                      <button
+                        onClick={async () => {
+                          if (confirm(`Delete document "${doc.title}" and its indexed chunks?`)) {
+                            await deleteDocument(doc.id);
+                            loadDocuments();
+                          }
+                        }}
+                        className="text-xs text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-800 transition"
+                        title="Delete Document"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

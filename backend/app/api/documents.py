@@ -87,6 +87,30 @@ async def get_document_detail(source_id: str) -> Dict[str, Any]:
         "raw_text": doc.get("raw_text", "")
     }
 
+@router.delete("/{source_id}", summary="Delete an ingested document and its indexed chunks")
+async def delete_document(source_id: str) -> Dict[str, Any]:
+    db = get_db()
+    doc = db.sources.find_one({"_id": source_id})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    ipo_id = doc.get("ipo_id")
+    # Delete chunks
+    chunk_res = db.chunks.delete_many({"source_id": source_id})
+    # Delete source
+    db.sources.delete_one({"_id": source_id})
+    
+    # Decrement document count on IPO if applicable
+    if ipo_id:
+        db.ipos.update_one({"_id": ipo_id}, {"$inc": {"documents_count": -1}})
+
+    return {
+        "status": "deleted",
+        "source_id": source_id,
+        "title": doc.get("title"),
+        "deleted_chunks": chunk_res.deleted_count
+    }
+
 @router.post("/upload", summary="Upload a document for parsing, chunking, and embedding")
 async def upload_document(
     file: UploadFile = File(...),
