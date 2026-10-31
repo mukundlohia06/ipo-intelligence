@@ -29,7 +29,15 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     BACKEND_HOST: str = "0.0.0.0"
     BACKEND_PORT: int = 8000
+    PORT: Optional[int] = None
     FRONTEND_ORIGIN: str = "http://localhost:3000"
+
+    @property
+    def effective_port(self) -> int:
+        port_env = os.environ.get("PORT")
+        if port_env and port_env.isdigit():
+            return int(port_env)
+        return self.PORT or self.BACKEND_PORT
 
     # MongoDB Atlas
     MONGODB_URI: str = Field(default="mongodb://localhost:27017")

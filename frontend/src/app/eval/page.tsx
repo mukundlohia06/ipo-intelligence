@@ -12,6 +12,7 @@ import {
   Layers,
   Award,
 } from "lucide-react";
+import { API_BASE_URL } from "../../lib/api";
 
 interface EvalMetrics {
   recall_at_5: number;
@@ -48,8 +49,7 @@ export default function EvalDashboardPage() {
   useEffect(() => {
     const fetchEval = async () => {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-        const res = await fetch(`${baseUrl}/api/v1/eval/latest`, { cache: "no-store" });
+        const res = await fetch(`${API_BASE_URL}/api/v1/eval/latest`, { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           setEvalData(data);

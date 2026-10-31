@@ -1,4 +1,5 @@
 import logging
+import re
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
@@ -18,21 +19,26 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS Middleware Configuration
+# CORS Middleware Configuration: allow Vercel previews, production origin, and localhost
 origins = [
     settings.FRONTEND_ORIGIN,
     "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "*" # Permissive for hackathon demo deployment across preview URLs
+    "http://127.0.0.1:3000"
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:\d+|http://127\.0\.0\.1:\d+",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Health checks: both /health (Render default) and /api/v1/health
+@app.get("/health", tags=["Health & Status"])
+async def root_health():
+    return await health.health_check()
 
 # Register API Routers under /api/v1
 app.include_router(health.router, prefix="/api/v1")
@@ -48,9 +54,9 @@ def root():
         "version": "1.0.0",
         "status": "online",
         "docs": "/docs",
-        "health": "/api/v1/health"
+        "health": "/health"
     }
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host=settings.BACKEND_HOST, port=settings.BACKEND_PORT, reload=True)
+    uvicorn.run("app.main:app", host=settings.BACKEND_HOST, port=settings.effective_port, reload=True)
