@@ -252,7 +252,12 @@ def generate_grounded_answer(
             )
 
             # Attempt configured model, with automatic fallback if model is not available
-            candidate_models = [settings.GEMINI_MODEL, "gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash"]
+            candidate_models = [
+                settings.GEMINI_MODEL,
+                "gemini-3.5-flash-lite",
+                "gemini-3.8-flash",
+                "gemini-flash-latest"
+            ]
             last_err = None
 
             for model_name in candidate_models:
@@ -275,9 +280,51 @@ def generate_grounded_answer(
                     return parsed
                 except Exception as model_err:
                     last_err = model_err
-                    logger.warning(f"Gemini call with {model_name} failed: {model_err}. Trying next candidate...")
+                    err_str = str(model_err)
+                    logger.warning(f"Gemini call with {model_name} failed: {err_str[:120]}. Trying next candidate...")
+                    if "403" in err_str or "API_KEY_INVALID" in err_str or "PERMISSION_DENIED" in err_str:
+                        # Fatal auth error, don't keep trying models
+                        break
 
             logger.error(f"All Gemini model candidates failed: {last_err}")
+            err_str = str(last_err or "")
+
+            if "403" in err_str or "API_KEY_INVALID" in err_str or "PERMISSION_DENIED" in err_str:
+                return {
+                    "state": "AUTH_ERROR",
+                    "summary": "Google Gemini API key authentication failed.",
+                    "direct_answer": (
+                        "The configured GEMINI_API_KEY was rejected by Google Gemini API (HTTP 403 / Invalid Key). "
+                        "Please verify that your API key is active and correctly pasted in `backend/.env` without extraneous quotes or spaces."
+                    ),
+                    "key_findings": ["Authentication check failed with Google GenAI service."],
+                    "financial_implications": "Cannot generate LLM analysis without valid credentials.",
+                    "risks": ["Invalid or inactive API credentials."],
+                    "claims": [],
+                    "conflicts": [],
+                    "gaps": ["Valid GEMINI_API_KEY required."],
+                    "follow_up_questions": ["How do I verify my Gemini API key?"],
+                    "llm_provider": "gemini (auth_error)",
+                    "llm_configured": False
+                }
+            elif "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                return {
+                    "state": "QUOTA_EXHAUSTED",
+                    "summary": "Google Gemini API rate limit or quota exceeded.",
+                    "direct_answer": (
+                        "The Gemini API rate limit or quota has been reached (HTTP 429). "
+                        "Please wait a few moments before submitting your next inquiry, or check your Gemini project quota tier."
+                    ),
+                    "key_findings": ["Rate limit threshold reached."],
+                    "financial_implications": "Temporary rate limit pause.",
+                    "risks": ["Quota limit reached."],
+                    "claims": [],
+                    "conflicts": [],
+                    "gaps": ["Service rate limited."],
+                    "follow_up_questions": ["Try again in 30 seconds"],
+                    "llm_provider": "gemini (quota_exhausted)",
+                    "llm_configured": True
+                }
 
         except Exception as e:
             logger.error(f"Gemini initialization error: {e}")

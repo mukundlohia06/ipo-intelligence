@@ -134,14 +134,14 @@ async def execute_research_query(req: QueryRequest) -> Dict[str, Any]:
     conflicts = raw_answer.get("conflicts", [])
 
     # 5. State Machine Resolution
-    if raw_answer.get("state") == "UNCONFIGURED":
-        final_state = "UNCONFIGURED"
+    if raw_answer.get("state") in ("UNCONFIGURED", "AUTH_ERROR", "QUOTA_EXHAUSTED"):
+        final_state = raw_answer.get("state")
     elif conflicts:
         final_state = "CONFLICTING"
     elif req.doc_id and not verified_claims:
         final_state = "INSUFFICIENT"
     elif len(verified_claims) < len(raw_claims) or all_gaps:
-        final_state = "PARTIAL"
+        final_state = raw_answer.get("state", "PARTIAL")
     else:
         final_state = raw_answer.get("state", "ANSWERED")
 

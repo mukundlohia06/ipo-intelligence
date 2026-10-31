@@ -28,6 +28,7 @@ import { Navbar } from "../../components/navigation/Navbar";
 import { PassageViewerModal } from "../../components/terminal/PassageViewerModal";
 import {
   fetchIpos,
+  fetchHealth,
   executeResearchQuery,
   clearConversation,
   type IpoSummary,
@@ -61,7 +62,19 @@ function AssistantPageContent() {
   const [loading, setLoading] = useState(false);
   const [activeCitation, setActiveCitation] = useState<ClaimItem | null>(null);
   const [isCitationModalOpen, setIsCitationModalOpen] = useState(false);
+  const [geminiConfigured, setGeminiConfigured] = useState<boolean | null>(null);
+  const [geminiModelName, setGeminiModelName] = useState<string>("gemini-3.5-flash-lite");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Check backend health & Gemini status
+  useEffect(() => {
+    fetchHealth().then((h) => {
+      setGeminiConfigured(Boolean(h?.providers?.llm?.configured));
+      if (h?.providers?.llm?.model) {
+        setGeminiModelName(h.providers.llm.model);
+      }
+    }).catch(() => setGeminiConfigured(false));
+  }, []);
 
   // Load IPOs for context dropdown
   useEffect(() => {
@@ -246,12 +259,25 @@ function AssistantPageContent() {
                 <h1 className="font-bold text-sm md:text-base text-white tracking-tight">
                   IPO Research Copilot
                 </h1>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                  Grounded & Verifiable
+                <span
+                  className={`px-2 py-0.5 rounded text-[10px] font-mono flex items-center gap-1 font-semibold ${
+                    geminiConfigured
+                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                      : "bg-amber-500/10 text-amber-400 border border-amber-500/30"
+                  }`}
+                >
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      geminiConfigured ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
+                    }`}
+                  />
+                  {geminiConfigured
+                    ? `Gemini Active (${geminiModelName})`
+                    : "Extractive Fallback Mode"}
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Google Gemini AI • Multi-Turn Memory • Deterministic Ratios • Zero Fabricated Citations
+                Official Google GenAI SDK • Multi-Turn Memory • Deterministic Ratios • Zero Hallucinations
               </p>
             </div>
           </div>
@@ -398,6 +424,16 @@ function AssistantPageContent() {
                         {msg.response.state === "UNCONFIGURED" && (
                           <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-semibold flex items-center gap-1">
                             <AlertTriangle className="h-3 w-3" /> Gemini Key Required
+                          </span>
+                        )}
+                        {msg.response.state === "AUTH_ERROR" && (
+                          <span className="px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 font-semibold flex items-center gap-1">
+                            <AlertTriangle className="h-3 w-3" /> Gemini Auth Error (403)
+                          </span>
+                        )}
+                        {msg.response.state === "QUOTA_EXHAUSTED" && (
+                          <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-semibold flex items-center gap-1">
+                            <Clock className="h-3 w-3" /> Quota Limit Reached (429)
                           </span>
                         )}
                         {msg.response.state === "CONFLICTING" && (
