@@ -172,9 +172,16 @@ export interface ResearchResponse {
   mode: string;
   state: "ANSWERED" | "PARTIAL" | "CONFLICTING" | "INSUFFICIENT";
   summary: string;
+  direct_answer?: string;
+  key_findings?: string[];
+  financial_implications?: string;
+  risks?: string[];
   claims: ClaimItem[];
   conflicts: ConflictItem[];
   gaps: string[];
+  follow_up_questions?: string[];
+  llm_provider?: string;
+  llm_configured?: boolean;
   trace: TraceItem[];
   latency_ms: Record<string, number>;
   verification_rate: number;
@@ -266,16 +273,38 @@ export async function fetchDocumentDetail(sourceId: string): Promise<any> {
   return await res.json();
 }
 
-export async function executeResearchQuery(ipoId: string, question: string): Promise<ResearchResponse> {
+export async function executeResearchQuery(
+  ipoId: string,
+  question: string,
+  conversationHistory: Array<{ role: string; content: string }> = []
+): Promise<ResearchResponse> {
   const res = await fetch(`${API_BASE_URL}/api/v1/research/query`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ipo_id: ipoId, question }),
+    body: JSON.stringify({
+      ipo_id: ipoId,
+      question,
+      conversation_history: conversationHistory,
+    }),
   });
   if (!res.ok) throw new Error(`Query failed: HTTP ${res.status}`);
   return await res.json();
 }
 export const submitQuery = executeResearchQuery;
+
+export async function searchDocumentChunks(query: string, ipoId?: string): Promise<any[]> {
+  try {
+    const url = new URL(`${API_BASE_URL}/api/v1/documents/chunks/search`);
+    url.searchParams.set("q", query);
+    if (ipoId) url.searchParams.set("ipo_id", ipoId);
+    const res = await fetch(url.toString(), { cache: "no-store" });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (err) {
+    console.error("Error searching document chunks:", err);
+    return [];
+  }
+}
 
 export async function uploadDocumentFile(
   file: File,

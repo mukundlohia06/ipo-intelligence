@@ -355,6 +355,127 @@ def seed_eval_cases(db):
         db.eval_cases.update_one({"_id": ev["_id"]}, {"$set": ev}, upsert=True)
     logger.info(f"✓ Seeded {len(eval_cases)} evaluation benchmark cases")
 
+def seed_additional_ipos(db):
+    logger.info("Seeding additional IPO records for comparative research...")
+    
+    # 2. Zenith Cloud & AI Technologies (Upcoming)
+    zenith_id = "ipo_zenith_technologies"
+    zenith_doc = {
+        "_id": zenith_id,
+        "company_name": "Zenith Cloud & AI Technologies Limited",
+        "symbol": "ZENITHAI",
+        "sector": "Enterprise SaaS & AI Infrastructure",
+        "summary": "Cloud-native AI analytics platform providing predictive maintenance and LLM deployment pipelines for Global 2000 enterprises.",
+        "issue_details": {
+            "price_band_low": 620.0,
+            "price_band_high": 655.0,
+            "price_band_str": "₹620 - ₹655",
+            "issue_size_cr": 850.0,
+            "fresh_issue_cr": 600.0,
+            "ofs_cr": 250.0,
+            "lot_size": 22,
+            "open_date": "2026-11-12",
+            "close_date": "2026-11-15",
+            "listing_date": "2026-11-20"
+        },
+        "score_breakdown": {
+            "overall": 81,
+            "recommendation": "APPLY",
+            "recommendation_horizon": "Long-Term",
+            "fundamentals": 27,
+            "valuation": 15,
+            "risks": 21,
+            "sentiment": 13,
+            "listing_potential": 8,
+            "key_drivers": [
+                "Net Dollar Retention Rate of 124% across recurring enterprise software subscriptions.",
+                "High gross margins (74.5%) with positive Free Cash Flow generation.",
+                "Valuation multiple (P/E 48.5x) justified by 52% ARR expansion."
+            ]
+        },
+        "documents_count": 2,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    db.ipos.update_one({"_id": zenith_id}, {"$set": zenith_doc}, upsert=True)
+
+    # Financials for Zenith
+    zenith_fin = [
+        {"ipo_id": zenith_id, "fiscal_year": "FY22", "revenue_operations_cr": 180.0, "total_income_cr": 184.5, "ebitda_cr": 36.0, "ebitda_margin_pct": 20.0, "pat_cr": 24.5, "pat_margin_pct": 13.6, "eps_restated": 5.4, "cash_flow_operating_cr": 28.0, "capex_cr": 8.0, "free_cash_flow_cr": 20.0, "net_worth_cr": 140.0, "total_debt_cr": 25.0, "debt_to_equity": 0.18, "ronw_pct": 17.5},
+        {"ipo_id": zenith_id, "fiscal_year": "FY23", "revenue_operations_cr": 285.0, "total_income_cr": 291.0, "ebitda_cr": 68.4, "ebitda_margin_pct": 24.0, "pat_cr": 48.0, "pat_margin_pct": 16.8, "eps_restated": 8.2, "cash_flow_operating_cr": 54.0, "capex_cr": 12.0, "free_cash_flow_cr": 42.0, "net_worth_cr": 210.0, "total_debt_cr": 20.0, "debt_to_equity": 0.10, "ronw_pct": 22.8},
+        {"ipo_id": zenith_id, "fiscal_year": "FY24", "revenue_operations_cr": 445.0, "total_income_cr": 452.0, "ebitda_cr": 118.0, "ebitda_margin_pct": 26.5, "pat_cr": 82.5, "pat_margin_pct": 18.5, "eps_restated": 13.5, "cash_flow_operating_cr": 92.0, "capex_cr": 15.0, "free_cash_flow_cr": 77.0, "net_worth_cr": 320.0, "total_debt_cr": 15.0, "debt_to_equity": 0.05, "ronw_pct": 25.8}
+    ]
+    for fin in zenith_fin:
+        db.financials.update_one({"ipo_id": zenith_id, "fiscal_year": fin["fiscal_year"]}, {"$set": fin}, upsert=True)
+
+    # Peers for Zenith
+    zenith_peers = [
+        {"ipo_id": zenith_id, "peer_name": "Tata Elxsi", "pe_ratio": 54.2, "ev_ebitda": 38.5, "ronw_pct": 28.4, "revenue_cr": 3550.0, "market_cap_cr": 42000.0},
+        {"ipo_id": zenith_id, "peer_name": "Persistent Systems", "pe_ratio": 46.8, "ev_ebitda": 29.4, "ronw_pct": 22.1, "revenue_cr": 9820.0, "market_cap_cr": 68000.0},
+        {"ipo_id": zenith_id, "peer_name": "KPIT Technologies", "pe_ratio": 52.0, "ev_ebitda": 34.1, "ronw_pct": 24.5, "revenue_cr": 4850.0, "market_cap_cr": 39500.0}
+    ]
+    for p in zenith_peers:
+        db.peers.update_one({"ipo_id": zenith_id, "peer_name": p["peer_name"]}, {"$set": p}, upsert=True)
+
+    # 3. SolarGrid Infrastructure Limited (Closed / Listed)
+    solargrid_id = "ipo_solar_grid_infra"
+    solargrid_doc = {
+        "_id": solargrid_id,
+        "company_name": "SolarGrid Infrastructure Limited",
+        "symbol": "SOLARGRID",
+        "sector": "Renewable Power & Transmission",
+        "summary": "Turnkey EPC infrastructure developer executing high-voltage solar evacuation sub-stations and grid-scale battery storage installations.",
+        "issue_details": {
+            "price_band_low": 210.0,
+            "price_band_high": 225.0,
+            "price_band_str": "₹210 - ₹225",
+            "issue_size_cr": 1800.0,
+            "fresh_issue_cr": 1400.0,
+            "ofs_cr": 400.0,
+            "lot_size": 65,
+            "open_date": "2026-10-14",
+            "close_date": "2026-10-17",
+            "listing_date": "2026-10-22"
+        },
+        "score_breakdown": {
+            "overall": 68,
+            "recommendation": "NEUTRAL",
+            "recommendation_horizon": "Listing Pop",
+            "fundamentals": 20,
+            "valuation": 16,
+            "risks": 15,
+            "sentiment": 10,
+            "listing_potential": 7,
+            "key_drivers": [
+                "Backed by a ₹4,200 Cr confirmed transmission order backlog across 6 states.",
+                "High leverage with Debt-to-Equity of 1.45x requires substantial interest servicing.",
+                "Modest net margins (6.8%) vulnerable to commodity price inflation in copper and aluminum."
+            ]
+        },
+        "documents_count": 2,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    db.ipos.update_one({"_id": solargrid_id}, {"$set": solargrid_doc}, upsert=True)
+
+    # Financials for SolarGrid
+    solargrid_fin = [
+        {"ipo_id": solargrid_id, "fiscal_year": "FY22", "revenue_operations_cr": 1150.0, "total_income_cr": 1162.0, "ebitda_cr": 138.0, "ebitda_margin_pct": 12.0, "pat_cr": 58.0, "pat_margin_pct": 5.0, "eps_restated": 4.8, "cash_flow_operating_cr": 72.0, "capex_cr": 45.0, "free_cash_flow_cr": 27.0, "net_worth_cr": 680.0, "total_debt_cr": 1020.0, "debt_to_equity": 1.50, "ronw_pct": 8.5},
+        {"ipo_id": solargrid_id, "fiscal_year": "FY23", "revenue_operations_cr": 1620.0, "total_income_cr": 1638.0, "ebitda_cr": 210.6, "ebitda_margin_pct": 13.0, "pat_cr": 92.0, "pat_margin_pct": 5.7, "eps_restated": 6.9, "cash_flow_operating_cr": 110.0, "capex_cr": 60.0, "free_cash_flow_cr": 50.0, "net_worth_cr": 820.0, "total_debt_cr": 1180.0, "debt_to_equity": 1.44, "ronw_pct": 11.2},
+        {"ipo_id": solargrid_id, "fiscal_year": "FY24", "revenue_operations_cr": 2340.0, "total_income_cr": 2365.0, "ebitda_cr": 327.6, "ebitda_margin_pct": 14.0, "pat_cr": 158.0, "pat_margin_pct": 6.8, "eps_restated": 9.8, "cash_flow_operating_cr": 145.0, "capex_cr": 85.0, "free_cash_flow_cr": 60.0, "net_worth_cr": 1050.0, "total_debt_cr": 1420.0, "debt_to_equity": 1.35, "ronw_pct": 15.0}
+    ]
+    for fin in solargrid_fin:
+        db.financials.update_one({"ipo_id": solargrid_id, "fiscal_year": fin["fiscal_year"]}, {"$set": fin}, upsert=True)
+
+    # Peers for SolarGrid
+    solargrid_peers = [
+        {"ipo_id": solargrid_id, "peer_name": "Sterling & Wilson", "pe_ratio": 34.5, "ev_ebitda": 22.0, "ronw_pct": 9.2, "revenue_cr": 3120.0, "market_cap_cr": 7200.0},
+        {"ipo_id": solargrid_id, "peer_name": "Tata Power", "pe_ratio": 31.8, "ev_ebitda": 15.4, "ronw_pct": 12.8, "revenue_cr": 56000.0, "market_cap_cr": 128000.0},
+        {"ipo_id": solargrid_id, "peer_name": "Adani Energy Sol", "pe_ratio": 42.0, "ev_ebitda": 19.8, "ronw_pct": 14.2, "revenue_cr": 14200.0, "market_cap_cr": 98000.0}
+    ]
+    for p in solargrid_peers:
+        db.peers.update_one({"ipo_id": solargrid_id, "peer_name": p["peer_name"]}, {"$set": p}, upsert=True)
+
 def main():
     logger.info("Starting Milestone 3 seed data loading...")
     db = get_db()
@@ -365,6 +486,7 @@ def main():
     seed_market_data(db)
     seed_peers(db)
     seed_eval_cases(db)
+    seed_additional_ipos(db)
 
     logger.info("==================================================")
     logger.info("✓ Milestone 3 Ingestion & Seed Data Loaded Successfully!")

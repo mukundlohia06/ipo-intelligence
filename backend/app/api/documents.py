@@ -9,6 +9,31 @@ from app.config import settings
 
 router = APIRouter(prefix="/documents", tags=["Document Ingestion"])
 
+@router.get("/chunks/search", summary="Search indexed document chunks")
+async def search_chunks(q: str, ipo_id: Optional[str] = None, limit: int = 10) -> List[Dict[str, Any]]:
+    db = get_db()
+    query_filter: Dict[str, Any] = {}
+    if ipo_id and ipo_id != "all":
+        query_filter["ipo_id"] = ipo_id
+    
+    # Regex fallback or text search
+    query_filter["text"] = {"$regex": q, "$options": "i"}
+    cursor = db.chunks.find(query_filter).limit(limit)
+    
+    results = []
+    for c in cursor:
+        results.append({
+            "id": c["_id"],
+            "ipo_id": c.get("ipo_id"),
+            "source_id": c.get("source_id"),
+            "section_title": c.get("section_title"),
+            "page_number": c.get("page_number", 1),
+            "text": c.get("text"),
+            "char_start": c.get("char_start", 0),
+            "char_end": c.get("char_end", 0),
+        })
+    return results
+
 @router.get("", summary="List ingested documents for an IPO")
 async def list_documents(ipo_id: str = "ipo_abc_industries") -> List[Dict[str, Any]]:
     db = get_db()

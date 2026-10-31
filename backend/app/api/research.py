@@ -12,11 +12,16 @@ from app.services.verifier import verify_claims
 
 router = APIRouter(prefix="/research", tags=["RAG Research Terminal"])
 
+class MessageHistoryItem(BaseModel):
+    role: str # user | assistant
+    content: str
+
 class QueryRequest(BaseModel):
     ipo_id: str = "ipo_abc_industries"
     question: str
     mode: str = "qa" # qa | compare | brief
     filters: Dict[str, Any] = Field(default_factory=dict)
+    conversation_history: List[MessageHistoryItem] = Field(default_factory=list)
 
 @router.post("/query", summary="Execute grounded hybrid RAG research query")
 async def execute_research_query(req: QueryRequest) -> Dict[str, Any]:
@@ -53,9 +58,20 @@ async def execute_research_query(req: QueryRequest) -> Dict[str, Any]:
             "mode": req.mode,
             "state": "INSUFFICIENT",
             "summary": f"Evidence Insufficient: {gate_reason}",
+            "direct_answer": f"Unable to answer from verified prospectus filings: {gate_reason}",
+            "key_findings": ["No regulatory or audited disclosure exists for this query in the official SEBI DRHP."],
+            "financial_implications": "Speculative unverified claims carry severe investment risk.",
+            "risks": ["Speculation outside filed statutory documents."],
             "claims": [],
             "conflicts": [],
             "gaps": [gate_reason],
+            "follow_up_questions": [
+                "What are the verified objects of the IPO?",
+                "What was the FY24 restated operational cash flow?",
+                "What are the major client concentration risks?"
+            ],
+            "llm_provider": "sufficiency_gate",
+            "llm_configured": False,
             "trace": trace_items,
             "latency_ms": stage_latencies,
             "verification_rate": 1.0,
@@ -71,7 +87,7 @@ async def execute_research_query(req: QueryRequest) -> Dict[str, Any]:
     sources_map = {s["_id"]: s for s in sources_cursor}
     chunks_map = {str(c["_id"]): c for c in selected_chunks}
 
-    # 3. Structured Generation (Gemini LLM)
+    # 3. Structured Generation (Gemini LLM or Institutional Deterministic Engine)
     t_gen_start = time.time()
     raw_answer = generate_grounded_answer(
         query=question,
@@ -114,9 +130,16 @@ async def execute_research_query(req: QueryRequest) -> Dict[str, Any]:
         "mode": req.mode,
         "state": final_state,
         "summary": raw_answer.get("summary", ""),
+        "direct_answer": raw_answer.get("direct_answer", raw_answer.get("summary", "")),
+        "key_findings": raw_answer.get("key_findings", []),
+        "financial_implications": raw_answer.get("financial_implications", ""),
+        "risks": raw_answer.get("risks", []),
         "claims": verified_claims,
         "conflicts": conflicts,
         "gaps": all_gaps,
+        "follow_up_questions": raw_answer.get("follow_up_questions", []),
+        "llm_provider": raw_answer.get("llm_provider", "deterministic_engine"),
+        "llm_configured": raw_answer.get("llm_configured", False),
         "trace": trace_items,
         "latency_ms": stage_latencies,
         "verification_rate": v_rate,

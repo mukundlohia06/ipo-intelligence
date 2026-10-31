@@ -17,16 +17,18 @@ def compute_financial_metrics(ipo_id: str) -> Dict[str, Any]:
     # Multi-year chart series for Recharts
     chart_series = []
     for r in fin_records:
-        cfo = float(r.get("cfo_cr", 0.0))
+        rev = float(r.get("revenue_cr", r.get("revenue_operations_cr", 0.0)))
+        ebitda = float(r.get("ebitda_cr", 0.0))
+        pat = float(r.get("pat_cr", 0.0))
+        cfo = float(r.get("cfo_cr", r.get("cash_flow_operating_cr", 0.0)))
         capex = float(r.get("capex_cr", 0.0))
         fcf = round(cfo - capex, 2)
-        pat = float(r.get("pat_cr", 0.0))
         cfo_pat_ratio = round(cfo / pat, 2) if pat != 0.0 else 0.0
 
         chart_series.append({
             "fiscal_year": r.get("fiscal_year"),
-            "revenue": float(r.get("revenue_cr", 0.0)),
-            "ebitda": float(r.get("ebitda_cr", 0.0)),
+            "revenue": rev,
+            "ebitda": ebitda,
             "pat": pat,
             "cfo": cfo,
             "capex": capex,
@@ -74,9 +76,18 @@ def compute_financial_metrics(ipo_id: str) -> Dict[str, Any]:
     avg_peer_pe = round(sum(peer_pes) / len(peer_pes), 2) if peer_pes else 0.0
     avg_peer_ev = round(sum(peer_ev_ebitdas) / len(peer_ev_ebitdas), 2) if peer_ev_ebitdas else 0.0
 
-    # IPO Valuation multiples (ABC Industries at ₹475 upper band)
-    ipo_pe = 32.4
-    ipo_ev_ebitda = 18.2
+    # IPO Valuation multiples based on target IPO
+    ipo_record = db.ipos.find_one({"_id": ipo_id}) or {}
+    if ipo_id == "ipo_zenith_technologies":
+        ipo_pe = 48.5
+        ipo_ev_ebitda = 28.0
+    elif ipo_id == "ipo_solar_grid_infra":
+        ipo_pe = 28.2
+        ipo_ev_ebitda = 14.5
+    else:
+        ipo_pe = 32.4
+        ipo_ev_ebitda = 18.2
+
     pe_discount_pct = round(((avg_peer_pe - ipo_pe) / avg_peer_pe) * 100, 2) if avg_peer_pe > 0 else 0.0
     ev_discount_pct = round(((avg_peer_ev - ipo_ev_ebitda) / avg_peer_ev) * 100, 2) if avg_peer_ev > 0 else 0.0
 
@@ -86,13 +97,16 @@ def compute_financial_metrics(ipo_id: str) -> Dict[str, Any]:
     sub_total = float(mkt.get("subscription_total_x", 8.6)) if mkt else 5.0
 
     # 4. Calibrated 5-Dimension Scorecard (0–100)
-    score_fundamentals = 24  # 30 pts max: High revenue growth (+42%), healthy EBITDA (14.4%)
-    score_valuation = 14     # 20 pts max: P/E 32.4x at ~20% discount to peer average of 40.7x
-    score_risks = 18         # 25 pts max: Penalized by customer concentration (68.4%) & negative CFO
-    score_sentiment = 11     # 15 pts max: Healthy GMP (+17.9%) and 8.6x subscription demand
-    score_listing = 7        # 10 pts max: Favorable listing gain probability based on grey market premium
+    score_bd = ipo_record.get("score_breakdown", {})
+    score_fundamentals = score_bd.get("fundamentals", 24)
+    score_valuation = score_bd.get("valuation", 14)
+    score_risks = score_bd.get("risks", 18)
+    score_sentiment = score_bd.get("sentiment", 11)
+    score_listing = score_bd.get("listing_potential", 7)
 
     total_score = score_fundamentals + score_valuation + score_risks + score_sentiment + score_listing
+    rec = score_bd.get("recommendation", "APPLY")
+    rec_horizon = score_bd.get("recommendation_horizon", "Long-Term")
 
     # Investment Assessment Horizons
     horizons = {
@@ -151,7 +165,7 @@ def compute_financial_metrics(ipo_id: str) -> Dict[str, Any]:
         },
         "scorecard": {
             "overall_score": total_score,
-            "verdict": "APPLY (Long-Term Horizon)",
+            "verdict": f"{rec} ({rec_horizon} Horizon)",
             "fundamentals": {"score": score_fundamentals, "max": 30},
             "valuation": {"score": score_valuation, "max": 20},
             "risks": {"score": score_risks, "max": 25},
