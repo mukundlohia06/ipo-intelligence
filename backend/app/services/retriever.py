@@ -269,11 +269,15 @@ def evaluate_sufficiency_gate(
     speculative_phrases = [
         "guaranteed", "definitely list", "guarantee listing", 
         "target listing gain", "will this double", "will it definitely",
-        "guaranteed premium", "100% safe"
+        "guaranteed premium", "100% safe", "in 2027", "in 2028", "q4 2027"
     ]
     for phrase in speculative_phrases:
         if phrase in lower_q:
-            return False, "Regulatory guidelines and prospectus disclosures prohibit guaranteed listing price or return forecasts."
+            return False, "Regulatory guidelines and prospectus disclosures prohibit guaranteed listing price or speculative forward return forecasts."
+
+    # Speculative M&A / unverified corporate action check
+    if any(term in lower_q for term in ["acquisition", "merger", "takeover", "buyout"]) and not any("acquisition" in c.get("text", "").lower() for c in selected_chunks):
+        return False, "No disclosures regarding future acquisitions or overseas corporate actions exist in the filed DRHP."
 
     # Score threshold check
     best_rrf = max((item["rrf_score"] for item in trace_items), default=0.0)
