@@ -19,10 +19,11 @@ import {
 import { Navbar } from "../../components/navigation/Navbar";
 import { DocumentUploadModal } from "../../components/terminal/DocumentUploadModal";
 import { PassageViewerModal } from "../../components/terminal/PassageViewerModal";
-import { fetchDocuments, searchDocumentChunks, DocumentItem } from "../../lib/api";
+import { fetchDocuments, fetchIpos, searchDocumentChunks, DocumentItem, IpoSummary } from "../../lib/api";
 
 export default function DocumentsPage() {
-  const [selectedIpo, setSelectedIpo] = useState<string>("ipo_abc_industries");
+  const [selectedIpo, setSelectedIpo] = useState<string>("ipo_hyundai_motor_india");
+  const [ipoList, setIpoList] = useState<IpoSummary[]>([]);
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -40,11 +41,14 @@ export default function DocumentsPage() {
     verified: boolean;
   } | null>(null);
 
-  const ipoOptions = [
-    { id: "ipo_abc_industries", name: "ABC Industries Ltd (Active IPO)" },
-    { id: "ipo_zenith_technologies", name: "Zenith Technologies Ltd (Upcoming IPO)" },
-    { id: "ipo_solar_grid_infra", name: "SolarGrid Infrastructure Ltd (Closed IPO)" },
-  ];
+  useEffect(() => {
+    fetchIpos().then((list) => {
+      setIpoList(list);
+      if (list.length > 0 && !selectedIpo) {
+        setSelectedIpo(list[0].id);
+      }
+    });
+  }, []);
 
   const loadDocuments = async () => {
     setLoading(true);
@@ -128,11 +132,11 @@ export default function DocumentsPage() {
                 setSelectedIpo(e.target.value);
                 setSearchResults([]);
               }}
-              className="bg-slate-950 border border-slate-700 text-sm text-white rounded-lg px-3 py-1.5 focus:outline-none focus:border-emerald-500"
+              className="bg-slate-950 border border-slate-700 text-sm text-white rounded-lg px-3 py-1.5 focus:outline-none focus:border-emerald-500 font-mono"
             >
-              {ipoOptions.map((opt) => (
+              {ipoList.map((opt) => (
                 <option key={opt.id} value={opt.id}>
-                  {opt.name}
+                  {opt.company_name} ({opt.symbol})
                 </option>
               ))}
             </select>

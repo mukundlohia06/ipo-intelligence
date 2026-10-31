@@ -35,10 +35,37 @@ export interface IpoSummary {
   sector: string;
   price_band: string;
   issue_size_cr: number;
+  fresh_issue_cr?: number;
+  ofs_cr?: number;
   lot_size: number;
+  retail_min_investment?: number;
   open_date?: string;
   close_date?: string;
+  listing_date?: string;
+  listing_gain_pct?: number;
   status: string;
+  data_nature?: "historical" | "live" | "sample" | string;
+  is_sample?: boolean;
+  summary?: string;
+  subscription_status?: {
+    qib_multiple?: number;
+    nii_multiple?: number;
+    retail_multiple?: number;
+    employee_multiple?: number;
+    overall_multiple?: number;
+    as_of?: string;
+  };
+  key_parties?: {
+    lead_managers?: string[];
+    registrar?: string;
+    registrar_url?: string;
+  };
+  source_reference?: {
+    document?: string;
+    filing_date?: string;
+    sebi_link?: string;
+    verified?: boolean;
+  };
   deterministic_score: {
     overall: number;
     fundamentals: number;
@@ -48,6 +75,17 @@ export interface IpoSummary {
     listing: number;
   };
   documents_count: number;
+  last_synced_at?: string;
+}
+
+export interface IpoSearchResponse {
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  live_connected: boolean;
+  provider_message: string;
+  ipos: IpoSummary[];
 }
 
 export interface ChartSeriesItem {
@@ -218,14 +256,78 @@ export async function fetchHealth(): Promise<HealthResponse> {
   }
 }
 
-export async function fetchIpos(): Promise<IpoSummary[]> {
+export async function fetchIpos(filters?: {
+  q?: string;
+  status?: string;
+  sector?: string;
+  sortBy?: string;
+  order?: "asc" | "desc";
+  page?: number;
+  pageSize?: number;
+}): Promise<IpoSummary[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/v1/ipos`, { cache: "no-store" });
+    const url = new URL(`${API_BASE_URL}/api/v1/ipos`);
+    if (filters?.q) url.searchParams.set("q", filters.q);
+    if (filters?.status && filters.status !== "all") url.searchParams.set("status", filters.status);
+    if (filters?.sector && filters.sector !== "all") url.searchParams.set("sector", filters.sector);
+    if (filters?.sortBy) url.searchParams.set("sort_by", filters.sortBy);
+    if (filters?.order) url.searchParams.set("order", filters.order);
+    if (filters?.page) url.searchParams.set("page", String(filters.page));
+    if (filters?.pageSize) url.searchParams.set("page_size", String(filters.pageSize));
+
+    const res = await fetch(url.toString(), { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
+    const data = await res.json();
+    if (Array.isArray(data)) return data;
+    return data.ipos || [];
   } catch (err) {
     console.error("Error fetching IPOs:", err);
     return [];
+  }
+}
+
+export async function searchIpos(filters?: {
+  q?: string;
+  status?: string;
+  sector?: string;
+  sortBy?: string;
+  order?: "asc" | "desc";
+  page?: number;
+  pageSize?: number;
+}): Promise<IpoSearchResponse> {
+  const url = new URL(`${API_BASE_URL}/api/v1/ipos`);
+  if (filters?.q) url.searchParams.set("q", filters.q);
+  if (filters?.status && filters.status !== "all") url.searchParams.set("status", filters.status);
+  if (filters?.sector && filters.sector !== "all") url.searchParams.set("sector", filters.sector);
+  if (filters?.sortBy) url.searchParams.set("sort_by", filters.sortBy);
+  if (filters?.order) url.searchParams.set("order", filters.order);
+  if (filters?.page) url.searchParams.set("page", String(filters.page));
+  if (filters?.pageSize) url.searchParams.set("page_size", String(filters.pageSize));
+
+  const res = await fetch(url.toString(), { cache: "no-store" });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  if (Array.isArray(data)) {
+    return {
+      total: data.length,
+      page: 1,
+      page_size: data.length,
+      total_pages: 1,
+      live_connected: false,
+      provider_message: "Historical SEBI filings",
+      ipos: data,
+    };
+  }
+  return data;
+}
+
+export async function fetchProviderStatus(): Promise<any> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/v1/ipos/provider/status`, { cache: "no-store" });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    return null;
   }
 }
 

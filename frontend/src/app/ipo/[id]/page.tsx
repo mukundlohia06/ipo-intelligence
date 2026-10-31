@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
+"use client";
 
-export default function IpoForwardPage({ params }: { params: { id: string } }) {
-  redirect(`/ipos/${params.id}`);
-}
+import IpoDetailPage from "../../ipos/[id]/page";
+export default IpoDetailPage;

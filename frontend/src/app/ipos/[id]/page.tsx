@@ -4,23 +4,24 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  TrendingUp,
-  AlertTriangle,
-  ShieldCheck,
-  Bot,
   ArrowLeft,
-  FileText,
-  Scale,
-  DollarSign,
-  Activity,
+  Bot,
+  ExternalLink,
+  ShieldCheck,
+  AlertTriangle,
+  TrendingUp,
+  TrendingDown,
+  Building2,
+  Calendar,
   Layers,
-  ChevronRight,
-  Sparkles,
+  FileText,
+  DollarSign,
   AlertOctagon,
   CheckCircle2,
   PieChart,
   BarChart3,
   BookOpen,
+  Users,
 } from "lucide-react";
 import { Navbar } from "../../../components/navigation/Navbar";
 import { FinancialTooltip } from "../../../components/terminal/FinancialTooltip";
@@ -43,7 +44,7 @@ import {
 export default function IpoDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const ipoId = (params?.id as string) || "ipo_abc_industries";
+  const ipoId = (params?.id as string) || "ipo_hyundai_motor_india";
 
   const [ipo, setIpo] = useState<IpoSummary | null>(null);
   const [scoreData, setScoreData] = useState<ScorecardResponse | null>(null);
@@ -70,13 +71,9 @@ export default function IpoDetailPage() {
     });
   }, [ipoId]);
 
-  const isAbc = ipoId === "ipo_abc_industries";
-  const isZenith = ipoId === "ipo_zenith_technologies";
-  const isSolar = ipoId === "ipo_solar_grid_infra";
-
-  const companyName = ipo?.company_name || (isAbc ? "ABC Industries Limited" : isZenith ? "Zenith Cloud & AI Technologies Limited" : "SolarGrid Infrastructure Limited");
-  const symbol = ipo?.symbol || (isAbc ? "ABCIND" : isZenith ? "ZENITHAI" : "SOLARGRID");
-  const sector = ipo?.sector || (isAbc ? "Industrial Engineering & Clean Tech" : isZenith ? "Enterprise SaaS & AI Infrastructure" : "Renewable Power & Transmission");
+  const companyName = ipo?.company_name || "Indian IPO Offering";
+  const symbol = ipo?.symbol || "NSE/BSE";
+  const sector = ipo?.sector || "Industrial / Tech";
 
   return (
     <div className="min-h-screen bg-[#080c14] text-slate-100 flex flex-col font-sans">
@@ -91,7 +88,7 @@ export default function IpoDetailPage() {
               className="inline-flex items-center gap-1.5 text-xs font-mono text-slate-400 hover:text-emerald-400 transition"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              <span>Back to IPO Catalog</span>
+              <span>Back to Real IPO Catalog</span>
             </Link>
 
             <div className="flex items-center gap-3 pt-1">
@@ -101,9 +98,12 @@ export default function IpoDetailPage() {
               <span className="px-2.5 py-0.5 rounded text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold">
                 {symbol}
               </span>
+              <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-slate-800 text-slate-300 border border-slate-700 uppercase">
+                {ipo?.status || "listed"}
+              </span>
             </div>
             <p className="text-xs text-slate-400 font-mono">
-              Sector: <strong className="text-slate-200">{sector}</strong> &bull; Primary SEBI DRHP Filing Research
+              Sector: <strong className="text-slate-200">{sector}</strong> &bull; Official SEBI Prospectus &amp; BSE Records
             </p>
           </div>
 
@@ -129,10 +129,10 @@ export default function IpoDetailPage() {
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <span className="text-xs font-mono uppercase tracking-wider text-slate-300 font-semibold flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                Issue Overview & Capital Structure
+                Issue Overview &amp; Capital Structure
               </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
-                Official Prospectus
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-emerald-400 border border-emerald-500/20">
+                SEBI Verified
               </span>
             </div>
 
@@ -140,262 +140,162 @@ export default function IpoDetailPage() {
               <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
                 <span className="text-slate-500 text-[10px] block">TOTAL ISSUE SIZE</span>
                 <span className="text-slate-100 font-bold text-sm">
-                  ₹{ipo?.issue_size_cr || (isAbc ? 1250 : isZenith ? 850 : 1800)} Cr
+                  ₹{ipo?.issue_size_cr?.toLocaleString("en-IN") || "—"} Cr
                 </span>
               </div>
               <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
                 <span className="text-slate-500 text-[10px] block">PRICE BAND</span>
                 <span className="text-slate-100 font-bold text-sm">
-                  {ipo?.price_band || (isAbc ? "₹380 - ₹400" : isZenith ? "₹620 - ₹655" : "₹210 - ₹225")}
+                  {ipo?.price_band || "—"}
                 </span>
               </div>
               <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
                 <span className="text-slate-500 text-[10px] block">FRESH / OFS SPLIT</span>
                 <span className="text-emerald-400 font-semibold">
-                  {isAbc ? "64% Fresh / 36% OFS" : isZenith ? "71% Fresh / 29% OFS" : "78% Fresh / 22% OFS"}
+                  {ipo?.fresh_issue_cr !== undefined && ipo?.ofs_cr !== undefined
+                    ? `₹${ipo.fresh_issue_cr} Cr Fresh / ₹${ipo.ofs_cr} Cr OFS`
+                    : "As per Prospectus"}
                 </span>
               </div>
               <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
-                <span className="text-slate-500 text-[10px] block">
-                  <FinancialTooltip term="pe">IMPLIED P/E MULTIPLE</FinancialTooltip>
-                </span>
-                <span className="text-slate-100 font-semibold">
-                  {isAbc ? "32.4x (20.4% Discount)" : isZenith ? "48.5x (Premium)" : "28.2x"}
+                <span className="text-slate-500 text-[10px] block">LOT SIZE / RETAIL MIN</span>
+                <span className="text-slate-200 font-medium">
+                  {ipo?.lot_size || 0} Shares ({ipo?.retail_min_investment ? `₹${ipo.retail_min_investment.toLocaleString("en-IN")}` : "1 Lot"})
                 </span>
               </div>
             </div>
 
-            <div className="p-3 rounded-lg bg-slate-950/60 border border-slate-800/80 text-xs font-sans text-slate-300 space-y-1">
-              <span className="font-mono text-slate-400 text-[10px] uppercase block font-semibold">
-                Business Model Summary
-              </span>
-              <p className="leading-relaxed">
-                {isAbc
-                  ? "Engineering leader specialized in automated clean-tech heat transfer equipment, industrial turbines, and hydrogen-ready pressure systems with operations anchored in Sanand, Gujarat."
-                  : isZenith
-                  ? "B2B enterprise SaaS cloud platform delivering predictive infrastructure monitoring and agentic AI deployment pipelines for Fortune 500 customers."
-                  : "Turnkey EPC infrastructure developer executing high-voltage power transmission grids, solar evacuation substations, and battery storage networks."}
+            {/* Subscription Demand Snapshot */}
+            {ipo?.subscription_status && (
+              <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-slate-400">Total Bidding Demand:</span>
+                  <span className="font-bold text-emerald-400">{ipo.subscription_status.overall_multiple}x</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-[11px] font-mono text-center">
+                  <div className="bg-slate-900 p-1.5 rounded border border-slate-800">
+                    <span className="text-slate-500 block text-[9px]">QIB</span>
+                    <span className="text-slate-200 font-semibold">{ipo.subscription_status.qib_multiple}x</span>
+                  </div>
+                  <div className="bg-slate-900 p-1.5 rounded border border-slate-800">
+                    <span className="text-slate-500 block text-[9px]">NII (HNI)</span>
+                    <span className="text-slate-200 font-semibold">{ipo.subscription_status.nii_multiple}x</span>
+                  </div>
+                  <div className="bg-slate-900 p-1.5 rounded border border-slate-800">
+                    <span className="text-slate-500 block text-[9px]">Retail (RII)</span>
+                    <span className="text-slate-200 font-semibold">{ipo.subscription_status.retail_multiple}x</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Listing Performance */}
+            {ipo?.listing_gain_pct !== undefined && ipo?.listing_gain_pct !== null && (
+              <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-400">Listing Day Performance:</span>
+                <span
+                  className={`font-bold flex items-center gap-1 ${
+                    ipo.listing_gain_pct >= 0 ? "text-emerald-400" : "text-rose-400"
+                  }`}
+                >
+                  {ipo.listing_gain_pct >= 0 ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
+                  {ipo.listing_gain_pct >= 0 ? `+${ipo.listing_gain_pct}%` : `${ipo.listing_gain_pct}%`}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 2. DYNAMIC FINANCIAL GRAPHS */}
+        <div className="rounded-2xl border border-slate-800 bg-[#0b101d] p-6 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div>
+              <h2 className="text-base font-bold text-white font-mono flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-emerald-400" />
+                Audited Financial Trends (Revenue, EBITDA &amp; Operating Cash Flow)
+              </h2>
+              <p className="text-xs text-slate-400">
+                Multi-year historical statements extracted from official SEBI prospectus filings (₹ in Crores)
               </p>
             </div>
+            <span className="text-xs font-mono text-slate-500">Source: Restated SEBI Financials</span>
           </div>
+
+          <FinancialTrendsChart series={financialsData?.chart_series || []} />
         </div>
 
-        {/* 2. RECHARTS FINANCIAL PERFORMANCE & QUALITY OF EARNINGS */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-emerald-400" />
-            <h2 className="text-lg font-bold text-white font-mono">
-              Audited Multi-Year Financial Performance (FY22 – FY24)
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-7">
-              <FinancialTrendsChart
-                series={financialsData?.chart_series || []}
-                divergenceAlert={
-                  financialsData?.quality_of_earnings
-                    ? {
-                        flag: financialsData.quality_of_earnings.divergence_flag,
-                        reason: financialsData.quality_of_earnings.reason,
-                        severity: financialsData.quality_of_earnings.severity,
-                      }
-                    : undefined
-                }
-              />
-            </div>
-
-            <div className="lg:col-span-5">
-              <PeerComparisonChart data={peersData} loading={loading} />
-            </div>
-          </div>
-        </div>
-
-        {/* 3. BALANCE SHEET & DEBT POSITION */}
-        <div className="rounded-2xl border border-slate-800 bg-[#0f172a] p-6 space-y-4">
+        {/* 3. PEER COMPARISON MULTIPLES */}
+        <div className="rounded-2xl border border-slate-800 bg-[#0b101d] p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <h2 className="text-base font-bold text-white font-mono flex items-center gap-2">
+                <PieChart className="h-4 w-4 text-blue-400" />
+                Valuation Multiples vs. Listed Competitor Peers
+              </h2>
+              <p className="text-xs text-slate-400">
+                P/E and EV/EBITDA multiples benchmarked against established Indian listed peers
+              </p>
+            </div>
+            <span className="text-xs font-mono text-slate-500">BSE/NSE Market Data</span>
+          </div>
+
+          <PeerComparisonChart data={peersData} />
+        </div>
+
+        {/* 4. KEY PARTIES & REGISTRAR */}
+        {ipo?.key_parties && (
+          <div className="rounded-2xl border border-slate-800 bg-[#0b101d] p-6 space-y-4">
+            <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+              <Users className="h-4 w-4 text-purple-400" />
+              <h3 className="text-sm font-semibold text-slate-200 font-mono uppercase tracking-wider">
+                Key Parties &amp; Issue Intermediaries
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                <span className="text-slate-400 text-[11px] block font-semibold">BOOK RUNNING LEAD MANAGERS (BRLMs)</span>
+                <ul className="space-y-1 text-slate-200">
+                  {ipo.key_parties.lead_managers?.map((lm) => (
+                    <li key={lm} className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                      <span>{lm}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                <span className="text-slate-400 text-[11px] block font-semibold">REGISTRAR TO THE OFFER</span>
+                <p className="text-slate-100 font-bold text-sm">{ipo.key_parties.registrar}</p>
+                {ipo.key_parties.registrar_url && (
+                  <a
+                    href={ipo.key_parties.registrar_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-emerald-400 hover:underline pt-1"
+                  >
+                    <span>Check Allotment Portal</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 5. SUMMARY DESCRIPTION */}
+        {ipo?.summary && (
+          <div className="rounded-2xl border border-slate-800 bg-[#0b101d] p-6 space-y-3">
             <h3 className="text-sm font-semibold text-slate-200 font-mono uppercase tracking-wider flex items-center gap-2">
-              <Scale className="h-4 w-4 text-blue-400" />
-              Balance Sheet Health & Deleveraging Roadmap
+              <Building2 className="h-4 w-4 text-emerald-400" /> Business Overview &amp; Market Position
             </h3>
-            <span className="text-xs font-mono text-slate-400">Statutory Auditor Restated Accounts</span>
+            <p className="text-xs text-slate-300 leading-relaxed font-sans">{ipo.summary}</p>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-mono">
-            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-              <span className="text-slate-500 text-[10px] block">GROSS BORROWINGS</span>
-              <span className="text-white font-bold text-sm">
-                ₹{isAbc ? "340.0" : isZenith ? "15.0" : "1420.0"} Cr
-              </span>
-              <span className="text-[10px] text-slate-400 block">
-                {isAbc ? "₹250 Cr retired via fresh issue" : isZenith ? "Virtually zero debt" : "High leverage"}
-              </span>
-            </div>
-
-            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-              <span className="text-slate-500 text-[10px] block">
-                <FinancialTooltip term="debt_equity">DEBT-TO-EQUITY</FinancialTooltip>
-              </span>
-              <span className="text-emerald-400 font-bold text-sm">
-                {isAbc ? "0.88x (falls to 0.23x post-IPO)" : isZenith ? "0.05x (Clean)" : "1.35x (Elevated)"}
-              </span>
-              <span className="text-[10px] text-slate-400 block">Post-Issue Deleveraging</span>
-            </div>
-
-            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-              <span className="text-slate-500 text-[10px] block">
-                <FinancialTooltip term="ronw">RETURN ON NET WORTH (RoNW)</FinancialTooltip>
-              </span>
-              <span className="text-emerald-400 font-bold text-sm">
-                {isAbc ? "23.4%" : isZenith ? "25.8%" : "15.0%"}
-              </span>
-              <span className="text-[10px] text-slate-400 block">FY24 Return Profile</span>
-            </div>
-
-            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-              <span className="text-slate-500 text-[10px] block">
-                <FinancialTooltip term="cfo_pat">CFO / PAT CONVERSION</FinancialTooltip>
-              </span>
-              <span className={`font-bold text-sm ${isAbc ? "text-red-400" : "text-emerald-400"}`}>
-                {isAbc ? "-0.26x (Cash Drag)" : isZenith ? "1.12x (Strong)" : "0.92x (Healthy)"}
-              </span>
-              <span className="text-[10px] text-slate-400 block">Quality of Earnings</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 4. OBJECTS OF THE ISSUE & PROCEEDS DEPLOYMENT */}
-        <div className="rounded-2xl border border-slate-800 bg-[#0f172a] p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 className="text-sm font-semibold text-slate-200 font-mono uppercase tracking-wider flex items-center gap-2">
-              <FileText className="h-4 w-4 text-emerald-400" />
-              Objects of the Issue (Use of Fresh Proceeds)
-            </h3>
-            <span className="text-xs font-mono text-emerald-400">
-              Fresh Capital: ₹{isAbc ? "800.0" : isZenith ? "600.0" : "1400.0"} Cr
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
-            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-emerald-400 font-semibold">1. Manufacturing Expansion</span>
-                <span className="font-bold text-white">{isAbc ? "₹420.0 Cr" : isZenith ? "₹320.0 Cr" : "₹850.0 Cr"}</span>
-              </div>
-              <p className="text-slate-400 font-sans text-[11px] leading-relaxed">
-                {isAbc
-                  ? "Setting up of a dedicated automated clean-tech heat exchanger and industrial turbine facility at Sanand, Gujarat to double production capacity."
-                  : isZenith
-                  ? "Scaling cloud infrastructure compute capacity and global GPU cluster access across US and European enterprise regions."
-                  : "Procurement of specialized high-voltage testing equipment and substation mobile construction fleets."}
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-blue-400 font-semibold">2. Debt Repayment</span>
-                <span className="font-bold text-white">{isAbc ? "₹250.0 Cr" : isZenith ? "₹15.0 Cr" : "₹350.0 Cr"}</span>
-              </div>
-              <p className="text-slate-400 font-sans text-[11px] leading-relaxed">
-                {isAbc
-                  ? "Prepayment/repayment of high-cost working capital bank borrowings, reducing annual interest burden by ~₹28.5 Crores."
-                  : isZenith
-                  ? "Full retirement of lingering working capital term debt, leaving the balance sheet completely zero-debt."
-                  : "Reduction of outstanding project financing lines to improve debt service coverage ratio."}
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-purple-400 font-semibold">3. General Corporate Purposes</span>
-                <span className="font-bold text-white">{isAbc ? "₹130.0 Cr" : isZenith ? "₹265.0 Cr" : "₹200.0 Cr"}</span>
-              </div>
-              <p className="text-slate-400 font-sans text-[11px] leading-relaxed">
-                Working capital support, regulatory compliance reserves, and strategic R&D initiatives for next-generation technology developments.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* 5. STRENGTHS VS RED FLAGS COMPARISON */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Strengths */}
-          <div className="rounded-2xl border border-emerald-950 bg-emerald-950/10 p-6 space-y-3">
-            <h3 className="text-sm font-semibold text-emerald-400 font-mono uppercase tracking-wider flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" /> Core Investment Strengths
-            </h3>
-            <ul className="space-y-2.5 text-xs text-slate-300 font-sans">
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 font-bold">•</span>
-                <span>
-                  <strong>High Top-Line Expansion:</strong> Revenue CAGR of +39.8% across FY22 to FY24 with confirmed order backlog exceeding ₹850 Crores.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 font-bold">•</span>
-                <span>
-                  <strong>Valuation Discount:</strong> Offered at 32.4x P/E, a ~20.4% valuation discount to sector median (40.7x), leaving margin of safety.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 font-bold">•</span>
-                <span>
-                  <strong>Balance Sheet Deleveraging:</strong> Fresh proceeds will retire ₹250 Cr of high-interest debt, expanding post-issue net margins.
-                </span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Risks & Red Flags */}
-          <div className="rounded-2xl border border-amber-950 bg-amber-950/10 p-6 space-y-3">
-            <h3 className="text-sm font-semibold text-amber-400 font-mono uppercase tracking-wider flex items-center gap-2">
-              <AlertOctagon className="h-4 w-4" /> Material Risk Disclosures (DRHP)
-            </h3>
-            <ul className="space-y-2.5 text-xs text-slate-300 font-sans">
-              <li className="flex items-start gap-2">
-                <span className="text-amber-400 font-bold">⚠</span>
-                <span>
-                  <strong>Cash Flow Divergence:</strong> FY24 operating cash flow was negative (-₹25.4 Cr) despite reporting ₹95.1 Cr PAT due to customer receivables doubling to 118 days.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-amber-400 font-bold">⚠</span>
-                <span>
-                  <strong>Customer Concentration:</strong> Top 3 industrial and defense clients represent 68.42% of revenue without long-term volume guarantees.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-amber-400 font-bold">⚠</span>
-                <span>
-                  <strong>Contingent Liabilities:</strong> Pending ITAT direct tax litigation of ₹14.20 Crores under dispute with appellate authorities.
-                </span>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* BOTTOM ACTION BANNER */}
-        <div className="p-8 rounded-3xl border border-emerald-500/30 bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-900 flex flex-wrap items-center justify-between gap-6 shadow-2xl">
-          <div className="space-y-1">
-            <h3 className="text-lg font-bold text-white font-mono">
-              Have deeper questions about {companyName}?
-            </h3>
-            <p className="text-xs text-slate-400 max-w-xl font-sans">
-              Our AI Copilot cross-checks statutory SEBI filings against broker reports with zero hallucinations. Ask about valuation multiples, client contracts, or audit notes.
-            </p>
-          </div>
-
-          <Link
-            href={`/assistant?ipo=${ipoId}`}
-            className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold shadow-lg shadow-emerald-950/60 transition flex items-center gap-2"
-          >
-            <Bot className="h-4 w-4" />
-            <span>Launch AI Assistant on {symbol}</span>
-          </Link>
-        </div>
+        )}
       </main>
 
-      {/* Primary Source Passage Viewer Modal */}
+      {/* Primary Source Document Passage Viewer Modal */}
       <PassageViewerModal
         citation={activeCitation}
         isOpen={isCitationModalOpen}

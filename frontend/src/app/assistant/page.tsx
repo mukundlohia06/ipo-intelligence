@@ -42,7 +42,7 @@ interface ChatMessage {
 
 function AssistantPageContent() {
   const searchParams = useSearchParams();
-  const initialIpo = searchParams.get("ipo") || "ipo_abc_industries";
+  const initialIpo = searchParams.get("ipo") || "ipo_hyundai_motor_india";
 
   const [ipos, setIpos] = useState<IpoSummary[]>([]);
   const [selectedIpoId, setSelectedIpoId] = useState<string>(initialIpo);
@@ -82,14 +82,15 @@ function AssistantPageContent() {
 
   const selectedIpo = ipos.find((i) => i.id === selectedIpoId) || ipos[0];
 
+  const companyShortName = selectedIpo?.company_name?.split(" ")[0] || "this company";
+
   const suggestedQuestions = [
-    "What are the biggest risks in ABC Industries IPO?",
-    "Is this IPO expensive compared with its peers?",
-    "Explain the company's revenue and profit trends.",
-    "What are the major reasons to avoid this IPO?",
-    "Summarize the company's use of IPO proceeds.",
-    "What did Apex Capital report regarding CFO compared to the audited DRHP?",
-    "Explain this company's debt position in simple language.",
+    `What are the biggest risk factors disclosed in the prospectus for ${companyShortName}?`,
+    `Is ${selectedIpo?.symbol || "this IPO"} expensive compared with listed peers?`,
+    `Summarize the company's objects of the offer and use of IPO proceeds.`,
+    `Explain the multi-year revenue and profit trajectory for ${companyShortName}.`,
+    `What related party transactions or royalty agreements are disclosed in the DRHP?`,
+    `Explain this company's debt position and cash flow quality.`,
   ];
 
   const handleSend = async (questionText?: string) => {
