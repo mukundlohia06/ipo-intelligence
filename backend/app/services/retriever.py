@@ -39,14 +39,15 @@ def _bm25_text_score(query: str, text: str, title: str = "") -> float:
     return score
 
 def hybrid_retrieve(
-    ipo_id: str,
-    query: str,
+    ipo_id: Optional[str] = None,
+    doc_id: Optional[str] = None,
+    query: str = "",
     top_k: int = 8,
     per_source_cap: int = 4
 ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], Dict[str, float]]:
     """
     Executes hybrid retrieval (Vector + Lexical) with Reciprocal Rank Fusion (k=60)
-    and multi-source diversification.
+    and multi-source diversification. Supports strict document-level isolation (doc_id).
     
     Returns:
       (fused_chunks, trace_items, latencies_dict)
@@ -59,11 +60,17 @@ def hybrid_retrieve(
     query_vec = get_query_embedding(query)
     latencies["embed_ms"] = round((time.time() - t0) * 1000, 2)
 
+    # Build DB filter
+    chunk_filter: Dict[str, Any] = {}
+    if ipo_id and ipo_id.lower() not in ("all", ""):
+        chunk_filter["ipo_id"] = ipo_id
+    if doc_id:
+        chunk_filter["source_id"] = doc_id
+
     # 2. Vector Search (Atlas $vectorSearch with fallback)
     t1 = time.time()
     vector_candidates: List[Dict[str, Any]] = []
     
-    # Attempt Atlas $vectorSearch pipeline first
     try:
         pipeline = [
             {
@@ -73,7 +80,7 @@ def hybrid_retrieve(
                     "queryVector": query_vec,
                     "numCandidates": 200,
                     "limit": 30,
-                    "filter": {"ipo_id": ipo_id}
+                    "filter": chunk_filter
                 }
             },
             {
@@ -98,8 +105,8 @@ def hybrid_retrieve(
                 "score": float(r.get("score", 0.0))
             })
     except Exception:
-        # Fallback to local cosine similarity over stored chunk embeddings
-        all_chunks = list(db.chunks.find({"ipo_id": ipo_id}))
+        # Fallback to in-app cosine similarity over stored chunk embeddings
+        all_chunks = list(db.chunks.find(chunk_filter))
         scored = []
         for chk in all_chunks:
             emb = chk.get("embedding")
@@ -116,6 +123,12 @@ def hybrid_retrieve(
     lexical_candidates: List[Dict[str, Any]] = []
 
     try:
+        search_filter = []
+        if ipo_id and ipo_id.lower() not in ("all", ""):
+            search_filter.append({"equals": {"path": "ipo_id", "value": ipo_id}})
+        if doc_id:
+            search_filter.append({"equals": {"path": "source_id", "value": doc_id}})
+
         pipeline = [
             {
                 "$search": {
@@ -129,9 +142,7 @@ def hybrid_retrieve(
                                 }
                             }
                         ],
-                        "filter": [
-                            {"equals": {"path": "ipo_id", "value": ipo_id}}
-                        ]
+                        "filter": search_filter
                     }
                 }
             },
@@ -158,8 +169,8 @@ def hybrid_retrieve(
                 "score": float(r.get("score", 0.0))
             })
     except Exception:
-        # Fallback to in-app BM25 scoring over chunks
-        all_chunks = list(db.chunks.find({"ipo_id": ipo_id}))
+        # Fallback to in-app BM25 scoring over chunks matching filter
+        all_chunks = list(db.chunks.find(chunk_filter))
         scored = []
         for chk in all_chunks:
             s = _bm25_text_score(query, chk.get("text", ""), chk.get("section_title", ""))
@@ -262,26 +273,22 @@ def evaluate_sufficiency_gate(
       (is_sufficient, reason)
     """
     if not selected_chunks or not trace_items:
-        return False, "No relevant prospectus passages or documents were located in the repository."
+        return False, "I could not find sufficient evidence for this answer in the selected document."
 
-    # Speculative / Unanswerable patterns
+    # Speculative / Unanswerable forward prediction patterns
     lower_q = query.lower()
     speculative_phrases = [
         "guaranteed", "definitely list", "guarantee listing", 
         "target listing gain", "will this double", "will it definitely",
-        "guaranteed premium", "100% safe", "in 2027", "in 2028", "q4 2027"
+        "guaranteed premium", "100% safe", "in 2028", "in 2029"
     ]
     for phrase in speculative_phrases:
         if phrase in lower_q:
             return False, "Regulatory guidelines and prospectus disclosures prohibit guaranteed listing price or speculative forward return forecasts."
 
-    # Speculative M&A / unverified corporate action check
-    if any(term in lower_q for term in ["acquisition", "merger", "takeover", "buyout"]) and not any("acquisition" in c.get("text", "").lower() for c in selected_chunks):
-        return False, "No disclosures regarding future acquisitions or overseas corporate actions exist in the filed DRHP."
-
-    # Score threshold check
+    # Score threshold check: if no chunk achieved basic keyword or vector match
     best_rrf = max((item["rrf_score"] for item in trace_items), default=0.0)
-    if best_rrf < 0.010: # Below minimum threshold of retrieval confidence
-        return False, "Retrieval confidence score is below the reliable evidence threshold."
+    if best_rrf < 0.005:
+        return False, "I could not find sufficient evidence for this answer in the selected document."
 
     return True, "Sufficient evidence available."

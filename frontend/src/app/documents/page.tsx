@@ -303,13 +303,11 @@ export default function DocumentsPage() {
                     </button>
 
                     <Link
-                      href={`/assistant?ipo=${selectedIpo}&q=${encodeURIComponent(
-                        `What are the key highlights and disclosures in ${doc.title}?`
-                      )}`}
-                      className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1"
+                      href={`/assistant?ipo=${selectedIpo}&doc=${doc.id}`}
+                      className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-500/30"
                     >
                       <Sparkles className="w-3 h-3" />
-                      Ask AI Copilot
+                      Ask AI About Document
                     </Link>
                   </div>
                 </div>

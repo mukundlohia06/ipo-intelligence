@@ -24,6 +24,7 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
   const [stage, setStage] = useState<Stage>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [chunksCount, setChunksCount] = useState<number>(0);
+  const [uploadedSourceId, setUploadedSourceId] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -39,12 +40,12 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
 
     try {
       setStage("uploading");
-      // Simulate visual pipeline steps for clear user feedback
       setTimeout(() => setStage("parsing"), 600);
       setTimeout(() => setStage("chunking"), 1200);
 
       const res = await uploadDocumentFile(file, ipoId, docType);
-      setChunksCount(res.chunks_created);
+      setChunksCount(res.chunks_count || res.chunks_created || 0);
+      setUploadedSourceId(res.source_id);
       setStage("complete");
       if (onUploadSuccess) onUploadSuccess();
     } catch (err: any) {
@@ -58,6 +59,7 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
     setStage("idle");
     setErrorMessage(null);
     setChunksCount(0);
+    setUploadedSourceId(null);
   };
 
   return (
@@ -221,15 +223,25 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
               </button>
             </>
           ) : stage === "complete" ? (
-            <button
-              onClick={() => {
-                resetForm();
-                onClose();
-              }}
-              className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs transition"
-            >
-              Done
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  resetForm();
+                  onClose();
+                }}
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs transition"
+              >
+                Close
+              </button>
+              {uploadedSourceId && (
+                <a
+                  href={`/assistant?ipo=${ipoId}&doc=${uploadedSourceId}`}
+                  className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-semibold transition flex items-center gap-1.5"
+                >
+                  <span>Ask AI About This Document</span>
+                </a>
+              )}
+            </div>
           ) : stage === "error" ? (
             <button
               onClick={resetForm}

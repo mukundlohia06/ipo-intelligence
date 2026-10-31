@@ -208,7 +208,7 @@ export interface ResearchResponse {
   ipo_id: string;
   question: string;
   mode: string;
-  state: "ANSWERED" | "PARTIAL" | "CONFLICTING" | "INSUFFICIENT";
+  state: "ANSWERED" | "PARTIAL" | "CONFLICTING" | "INSUFFICIENT" | "UNCONFIGURED" | string;
   summary: string;
   direct_answer?: string;
   key_findings?: string[];
@@ -358,9 +358,10 @@ export async function fetchIpoScore(ipoId: string): Promise<ScorecardResponse> {
 }
 export const fetchScorecard = fetchIpoScore;
 
-export async function fetchDocuments(ipoId: string): Promise<DocumentItem[]> {
+export async function fetchDocuments(ipoId?: string): Promise<DocumentItem[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/v1/documents?ipo_id=${ipoId}`, { cache: "no-store" });
+    const query = ipoId && ipoId !== "all" ? `?ipo_id=${ipoId}` : "";
+    const res = await fetch(`${API_BASE_URL}/api/v1/documents${query}`, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } catch (err) {
@@ -378,13 +379,17 @@ export async function fetchDocumentDetail(sourceId: string): Promise<any> {
 export async function executeResearchQuery(
   ipoId: string,
   question: string,
-  conversationHistory: Array<{ role: string; content: string }> = []
+  conversationHistory: Array<{ role: string; content: string }> = [],
+  docId?: string,
+  conversationId?: string
 ): Promise<ResearchResponse> {
   const res = await fetch(`${API_BASE_URL}/api/v1/research/query`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      conversation_id: conversationId || undefined,
       ipo_id: ipoId,
+      doc_id: docId || undefined,
       question,
       conversation_history: conversationHistory,
     }),
@@ -394,11 +399,29 @@ export async function executeResearchQuery(
 }
 export const submitQuery = executeResearchQuery;
 
-export async function searchDocumentChunks(query: string, ipoId?: string): Promise<any[]> {
+export async function fetchUniversalAnalysis(ipoId: string): Promise<any> {
+  const res = await fetch(`${API_BASE_URL}/api/v1/ipos/${ipoId}/analysis`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return await res.json();
+}
+
+export async function clearConversation(conversationId: string): Promise<any> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/v1/research/conversations/${conversationId}`, {
+      method: "DELETE",
+    });
+    return await res.json();
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function searchDocumentChunks(query: string, ipoId?: string, docId?: string): Promise<any[]> {
   try {
     const url = new URL(`${API_BASE_URL}/api/v1/documents/chunks/search`);
     url.searchParams.set("q", query);
-    if (ipoId) url.searchParams.set("ipo_id", ipoId);
+    if (ipoId && ipoId !== "all") url.searchParams.set("ipo_id", ipoId);
+    if (docId) url.searchParams.set("doc_id", docId);
     const res = await fetch(url.toString(), { cache: "no-store" });
     if (!res.ok) return [];
     return await res.json();
@@ -410,10 +433,10 @@ export async function searchDocumentChunks(query: string, ipoId?: string): Promi
 
 export async function uploadDocumentFile(
   file: File,
-  ipoId: string = "ipo_abc_industries",
-  docType: string = "report",
+  ipoId: string = "ipo_hyundai_motor_india",
+  docType: string = "prospectus",
   title?: string
-): Promise<{ source_id: string; chunks_created: number; status: string; message: string }> {
+): Promise<{ source_id: string; chunks_created: number; chunks_count: number; pages: number; status: string; message: string }> {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("ipo_id", ipoId);
@@ -424,6 +447,13 @@ export async function uploadDocumentFile(
     method: "POST",
     body: formData,
   });
-  if (!res.ok) throw new Error(`Upload failed: HTTP ${res.status}`);
+  if (!res.ok) {
+    let errDetail = `Upload failed: HTTP ${res.status}`;
+    try {
+      const errJson = await res.json();
+      if (errJson?.detail) errDetail = errJson.detail;
+    } catch (_) {}
+    throw new Error(errDetail);
+  }
   return await res.json();
 }

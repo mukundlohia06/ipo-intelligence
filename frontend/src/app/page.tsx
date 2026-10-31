@@ -191,7 +191,7 @@ export default function HomePage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search real IPOs by name, symbol, or sector (e.g. Hyundai, Swiggy, Solar)..."
+                placeholder="Search any Indian IPO by name, symbol, or sector (e.g. Zomato, Swiggy, Bajaj)..."
                 className="w-full bg-slate-950 border border-slate-700 text-sm text-white pl-9 pr-4 py-2 rounded-xl focus:outline-none focus:border-emerald-500 font-sans"
               />
             </div>
@@ -239,6 +239,20 @@ export default function HomePage() {
                 <option value="listing_gain">Sort: Listing Gain</option>
               </select>
             </div>
+          </div>
+
+          {/* Quick Universal Discovery Tags */}
+          <div className="flex flex-wrap items-center gap-1.5 text-xs font-mono text-slate-400">
+            <span className="text-[11px] text-slate-500 uppercase font-semibold">Instant Discover:</span>
+            {["Swiggy", "Hyundai Motor", "Zomato", "Tata Technologies", "Waaree Energies", "NTPC Green", "Bajaj Housing", "LIC", "Ola Electric", "Honasa"].map((co) => (
+              <button
+                key={co}
+                onClick={() => setSearchQuery(co)}
+                className="px-2.5 py-1 rounded-lg bg-slate-900/90 border border-slate-800 hover:border-emerald-500/40 text-slate-300 hover:text-white transition"
+              >
+                {co}
+              </button>
+            ))}
           </div>
 
           {/* IPO Cards Grid */}

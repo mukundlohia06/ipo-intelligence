@@ -19,11 +19,14 @@ class Settings(BaseSettings):
     MONGODB_URI: str = Field(default="mongodb://localhost:27017")
     MONGODB_DB: str = Field(default="ipo_intelligence")
 
-    # LLM Provider
+    # LLM Provider & Google Gemini API
     LLM_PROVIDER: str = "gemini"
     GEMINI_API_KEY: Optional[str] = None
     LLM_API_KEY: Optional[str] = None
-    LLM_MODEL: str = "gemini-1.5-flash"
+    GEMINI_MODEL: str = "gemini-2.5-flash"
+    LLM_MODEL: str = "gemini-2.5-flash"
+    GEMINI_TEMPERATURE: float = 0.3
+    GEMINI_MAX_OUTPUT_TOKENS: int = 4096
 
     # Embedding Provider
     EMBEDDING_PROVIDER: str = "gemini"
